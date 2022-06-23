@@ -148,6 +148,9 @@ void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 			tmp.m_AnnoText = dlg.m_strText;
 			tmp.m_AnnoSize = dlg.m_nSize;
 			tmp.m_AnnoPoint = point;
+			tmp.m_AnnoAlpa=dlg.m_nOpacity;
+			tmp.m_AnnoColor = dlg.m_btnColor.GetColor();
+			
 			pDoc->m_Text.push_back(tmp);
 
 		}

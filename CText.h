@@ -10,6 +10,6 @@ public:
 public:
 	CText();
 	void Draw(Graphics &g,CWnd* cwnd);
-
+	Color SetColor();
 };
 

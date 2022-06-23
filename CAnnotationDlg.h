@@ -29,4 +29,12 @@ public:
 	int m_nSize;
 	CSliderCtrl m_SliderOp;
 //	afx_msg void OnEnChangeEditSize();
+	CMFCColorButton m_btnColor;
+	COLORREF m_color;
+	int m_nOpacity;
+	afx_msg void OnBnHotItemChangeColorbutton(NMHDR* pNMHDR, LRESULT* pResult);
+	virtual BOOL OnInitDialog();
+//	afx_msg void OnNMCustomdrawSliderOpacity(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+//	afx_msg void OnBnClickedColorbutton();
 };

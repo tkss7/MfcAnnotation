@@ -13,7 +13,7 @@ void CText::Draw(Graphics& g, CWnd* cwnd)
 	CRect rect;
 	cwnd->GetClientRect(rect);
 	Gdiplus::Font font(_T("Arial"), m_AnnoSize, FontStyleBold, UnitPixel);
-	SolidBrush sbrush(Color::Black);
+	SolidBrush sbrush(SetColor());
 	Pen pen(Color::Red);
 
 
@@ -32,4 +32,9 @@ void CText::Draw(Graphics& g, CWnd* cwnd)
 		&format,
 		&sbrush);
 
+}
+
+Color CText::SetColor()
+{
+	return Color(m_AnnoAlpa, (BYTE)GetRValue(m_AnnoColor), GetGValue(m_AnnoColor), GetBValue(m_AnnoColor));
 }
