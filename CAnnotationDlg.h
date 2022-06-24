@@ -37,4 +37,5 @@ public:
 //	afx_msg void OnNMCustomdrawSliderOpacity(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 //	afx_msg void OnBnClickedColorbutton();
+	afx_msg void OnEnChangeEditText();
 };

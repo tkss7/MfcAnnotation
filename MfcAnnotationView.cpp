@@ -38,6 +38,7 @@ CMfcAnnotationView::CMfcAnnotationView() noexcept
 {
 	// TODO: 여기에 생성 코드를 추가합니다.
 	m_bAnno = false;
+	m_bDblCl = false;
 }
 
 CMfcAnnotationView::~CMfcAnnotationView()
@@ -69,6 +70,20 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 			PixelFormat32bppARGB, pDoc->matImg.data);
 
 		g.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+
+		if (m_bDblCl)
+		{
+			CAnnotationDlg dlg;
+			GetDlgItemTextW(IDC_EDIT_TEXT, pDoc->m_text.m_AnnoText);
+			//pDoc->m_text.m_AnnoText = dlg.m_strText;
+			pDoc->m_text.m_AnnoSize = dlg.m_nSize;
+			pDoc->m_text.m_AnnoAlpa = dlg.m_nOpacity;
+			pDoc->m_text.m_AnnoColor = dlg.m_btnColor.GetColor();
+
+			pDoc->m_text.Draw(g, this);
+
+		}
+
 
 		for (auto AnnoText : pDoc->m_Text)
 		{
@@ -136,9 +151,21 @@ void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 	if (m_bAnno)
 	{
+		m_bDblCl = true;
 		CAnnotationDlg dlg;
-
+		CClientDC dc(this);
+		Graphics g(dc.m_hDC);
 		CMfcAnnotationDoc* pDoc = GetDocument();
+		pDoc->m_text.m_AnnoText = dlg.m_strText;
+		pDoc->m_text.m_AnnoSize= dlg.m_nSize;
+		pDoc->m_text.m_AnnoPoint= point;
+		pDoc->m_text.m_AnnoAlpa = dlg.m_nOpacity;
+		pDoc->m_text.m_AnnoColor= dlg.m_btnColor.GetColor();
+
+		pDoc->m_text.Draw(g, this);
+
+
+
 
 		CText tmp;
 		
@@ -152,7 +179,7 @@ void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 			tmp.m_AnnoColor = dlg.m_btnColor.GetColor();
 			
 			pDoc->m_Text.push_back(tmp);
-
+			m_bDblCl = false;
 		}
 		pDoc->UpdateAllViews(FALSE);
 	}

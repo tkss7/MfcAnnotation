@@ -19,7 +19,7 @@ public:
 public:
 	CString m_ImgPath;
 	vector<CText> m_Text;
-	
+	CText m_text;
 	Mat matImg;
 // 재정의입니다.
 public:
