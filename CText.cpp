@@ -6,6 +6,7 @@ CText::CText()
 	m_AnnoPoint = (0, 0);
 	m_AnnoText=(_T(""));
 	m_AnnoSize = 0;
+	m_AnnoColor = (0xFF00FF);
 }
 
 void CText::Draw(Graphics& g, CWnd* cwnd)

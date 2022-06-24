@@ -4,7 +4,7 @@
 
 #pragma once
 #include "MfcAnnotationDoc.h"
-
+#include "CText.h"
 class CMfcAnnotationView : public CView
 {
 protected: // serialization에서만 만들어집니다.
@@ -19,6 +19,7 @@ public:
 public:
 	bool m_bAnno;
 	bool m_bDblCl;
+	CText m_text;
 // 재정의입니다.
 public:
 	virtual void OnDraw(CDC* pDC);  // 이 뷰를 그리기 위해 재정의되었습니다.

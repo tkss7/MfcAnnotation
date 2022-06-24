@@ -73,14 +73,7 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 
 		if (m_bDblCl)
 		{
-			CAnnotationDlg dlg;
-			GetDlgItemTextW(IDC_EDIT_TEXT, pDoc->m_text.m_AnnoText);
-			//pDoc->m_text.m_AnnoText = dlg.m_strText;
-			pDoc->m_text.m_AnnoSize = dlg.m_nSize;
-			pDoc->m_text.m_AnnoAlpa = dlg.m_nOpacity;
-			pDoc->m_text.m_AnnoColor = dlg.m_btnColor.GetColor();
-
-			pDoc->m_text.Draw(g, this);
+			m_text.Draw(g, this);
 
 		}
 
@@ -156,31 +149,32 @@ void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 		CClientDC dc(this);
 		Graphics g(dc.m_hDC);
 		CMfcAnnotationDoc* pDoc = GetDocument();
-		pDoc->m_text.m_AnnoText = dlg.m_strText;
-		pDoc->m_text.m_AnnoSize= dlg.m_nSize;
-		pDoc->m_text.m_AnnoPoint= point;
-		pDoc->m_text.m_AnnoAlpa = dlg.m_nOpacity;
-		pDoc->m_text.m_AnnoColor= dlg.m_btnColor.GetColor();
+		m_text.m_AnnoText = dlg.m_strText;
+		m_text.m_AnnoSize= dlg.m_nSize;
+		m_text.m_AnnoPoint= point;
+		m_text.m_AnnoAlpa = dlg.m_nOpacity;
+		m_text.m_AnnoColor= 0xFF00FF;
 
-		pDoc->m_text.Draw(g, this);
-
-
+		m_text.Draw(g, this);
 
 
 		CText tmp;
 		
 		if (dlg.DoModal() == IDOK)
 		{
-			
+
 			tmp.m_AnnoText = dlg.m_strText;
 			tmp.m_AnnoSize = dlg.m_nSize;
 			tmp.m_AnnoPoint = point;
-			tmp.m_AnnoAlpa=dlg.m_nOpacity;
+			tmp.m_AnnoAlpa = dlg.m_nOpacity;
 			tmp.m_AnnoColor = dlg.m_btnColor.GetColor();
-			
+
 			pDoc->m_Text.push_back(tmp);
 			m_bDblCl = false;
 		}
+		else
+			m_bDblCl = false;
+
 		pDoc->UpdateAllViews(FALSE);
 	}
 
