@@ -22,15 +22,30 @@ public:
 	// Img
 	CString m_ImgPath;
 	Mat matImg;
+	Color m_drawColor;
+	int m_drawThick;
+	//// 정의
+	//CDraw m_draw;
+	//vector<CDraw*> m_draws;
 
-	// 정의
-	CDraw m_draw;
-	vector<CDraw> m_draws;
+	//// String
+	//CText m_text;
+	//vector<CText> m_texts;
+	int m_drawType;
+	CDrawPtr m_pDraw;
+	vector<CDrawPtr> m_draws;
 
-	// String
-	CText m_text;
-	vector<CText> m_texts;
-
+	CDrawPtr CreateDrawObject(CPoint point) {
+		switch (m_drawType) {
+		case ID_DRAW_STRING:
+			m_pDraw = make_shared<CText>(m_drawType, Gdiplus::Point(point.x, point.y));
+			break;
+		default:
+			m_pDraw = make_shared<CDraw>(m_drawType, Gdiplus::Point(point.x, point.y));
+			break;
+		}
+		return m_pDraw;
+	}
 // 재정의입니다.
 public:
 	virtual BOOL OnNewDocument();

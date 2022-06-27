@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CDraw.h"
 
-void CDraw::Draw(Gdiplus::Graphics& g)
+void CDraw::Draw(Gdiplus::Graphics& g, CWnd* cwnd)
 {
 	Pen pen(color, thick);
 	int width = pointCur.X - pointOld.X;
@@ -21,46 +21,50 @@ void CDraw::Draw(Gdiplus::Graphics& g)
 		g.DrawLine(&pen, pointOld, pointCur);
 	}
 	else if (drawType == ID_DRAW_LINE_FREE) {
-		g.DrawCurve(&pen, pntLine.data(), pntLine.size());
+		g.DrawCurve(&pen, pntLine.data(), pntLine.size(),0.5f);
+		//g.DrawLines(&pen, pntLine.data(), pntLine.size());
 	}
 }
 
-CText::CText()
-{
-	pointText = (0, 0);
-	text = (_T(""));
-	fontSize = 0;
-	textColor = (0xFF00FF);
-}
+//CText::CText() :CDraw()
+//{
+//	//pointText = (0, 0);
+//	text = (_T(""));
+//	fontSize = 0;
+//	//textColor = (0xFF00FF);
+//}
 
 void CText::Draw(Graphics& g, CWnd* cwnd)
 {
-	CRect rect;
-	cwnd->GetClientRect(rect);
-	Gdiplus::Font font(_T("Arial"), fontSize, FontStyleBold, UnitPixel);
-	SolidBrush sbrush(SetColor());
-	Pen pen(Color::Red);
+	if (drawType == ID_DRAW_STRING)
+	{
+		CRect rect;
+		cwnd->GetClientRect(rect);
+		Gdiplus::Font font(_T("Arial"), fontSize, FontStyleBold, UnitPixel);
+		SolidBrush sbrush(color);
+		Pen pen(Color::Red);
 
 
-	RectF layoutRect(0.0f, 0.0f, rect.Width(), rect.Height());
+		RectF layoutRect(0.0f, 0.0f, rect.Width(), rect.Height());
 
-	RectF boundRect;
-	StringFormat format;
-	format.SetAlignment(StringAlignmentNear);
-	format.SetLineAlignment(StringAlignmentCenter);
-	g.MeasureString(text, -1, &font, layoutRect, &format, &boundRect);
+		RectF boundRect;
+		StringFormat format;
+		format.SetAlignment(StringAlignmentNear);
+		format.SetLineAlignment(StringAlignmentCenter);
+		g.MeasureString(text, -1, &font, layoutRect, &format, &boundRect);
+		g.DrawRectangle(&Pen(Color::Red), RectF((float)pointOld.X, pointOld.Y, boundRect.Width, boundRect.Height));
 
-	g.DrawRectangle(&Pen(Color::Red), RectF(pointText.x, pointText.y, boundRect.Width, boundRect.Height));
-
-	g.DrawString(text, -1, &font,
-		RectF(pointText.x, pointText.y, boundRect.Width, boundRect.Height),
-		&format,
-		&sbrush);
+		g.DrawString(text, -1, &font,
+			RectF(pointOld.X, pointOld.Y, boundRect.Width, boundRect.Height),
+			&format,
+			&sbrush);
+	}
+	
 
 }
 
-Color CText::SetColor()
-{
-	return Color(textAlpha, (BYTE)GetRValue(textColor), GetGValue(textColor), GetBValue(textColor));
-}
+//Color CText::SetColor()
+//{
+//	return Color(textAlpha, (BYTE)GetRValue(textColor), GetGValue(textColor), GetBValue(textColor));
+//}
 

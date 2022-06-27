@@ -50,7 +50,8 @@ BOOL CMfcAnnotationDoc::OnNewDocument()
 
 	// TODO: 여기에 재초기화 코드를 추가합니다.
 	// SDI 문서는 이 문서를 다시 사용합니다.
-
+	m_drawType = ID_DRAW_MOUSE;
+	m_drawColor = Color::Black;
 	return TRUE;
 }
 
@@ -164,7 +165,7 @@ void CMfcAnnotationDoc::OnOptionColor()
 	CColorDialog dlg;
 
 	if (dlg.DoModal() == IDOK) {
-		m_draw.color.SetFromCOLORREF(dlg.GetColor());
+		m_drawColor.SetFromCOLORREF(dlg.GetColor());
 	}
 }
 
@@ -172,19 +173,19 @@ void CMfcAnnotationDoc::OnOptionColor()
 void CMfcAnnotationDoc::OnThick1()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_draw.thick = 1;
+	m_drawThick = 1;
 }
 
 
 void CMfcAnnotationDoc::OnThick3()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_draw.thick = 3;
+	m_drawThick = 3;
 }
 
 
 void CMfcAnnotationDoc::OnThick5()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_draw.thick = 20;
+	m_drawThick = 20;
 }

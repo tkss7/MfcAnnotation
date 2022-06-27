@@ -85,22 +85,16 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 		memDC.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
 
 		// 실시간 그리기
-		if (m_nType) {
-			pDoc->m_draw.Draw(memDC);
-			pDoc->m_text.Draw(memDC, this);
+
+		for (auto pDraw : pDoc->m_draws) {
+			pDraw->Draw(memDC, this);
+		}
+		if (m_nType && m_bflag) {
+			pDoc->m_pDraw->Draw(memDC, this);
 		}
 	}
 
-
 	// Annotation
-	for (auto i = 0; i < pDoc->m_draws.size(); i++) {
-		pDoc->m_draws[i].Draw(memDC);
-	}
-
-	// String
-	for (auto i = 0; i < pDoc->m_texts.size(); i++) {
-		pDoc->m_texts[i].Draw(memDC, this);
-	}
 
 	g.DrawImage(memBit.get(), 0, 0);
 }
@@ -152,7 +146,8 @@ void CMfcAnnotationView::OnChangeTool(UINT wParam) {
 	// 툴바와 메뉴바를 라디오처럼 다루기
 	CMfcAnnotationDoc* pDoc = GetDocument();
 	m_nType = GetCurrentMessage()->wParam;
-	pDoc->m_draw.drawType = m_nType;
+	pDoc->m_drawType = m_nType;
+	//pDoc->CreateDrawObject();
 }
 
 // 현재 선택한 툴바항목과 일치여부에 따라 체크 표시
@@ -165,39 +160,48 @@ void CMfcAnnotationView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	CMfcAnnotationDoc* pDoc = GetDocument();
+	m_bflag = true;
 	SetCapture();
-	pDoc->m_draw.pointOld.X = point.x;
-	pDoc->m_draw.pointOld.Y = point.y;
 
+	 pDoc->m_pDraw = pDoc->CreateDrawObject(point);
+	 pDoc->m_pDraw->pntLine.clear();
+	pDoc->m_pDraw->color = pDoc->m_drawColor;
+	pDoc->m_pDraw->thick = pDoc->m_drawThick;
 	// String
 	if (m_nType == ID_DRAW_STRING)
 	{
 		CAnnotationDlg dlg;
-		CClientDC dc(this);
-		Graphics g(dc.m_hDC);
 
-		pDoc->m_text.text = dlg.m_strText;
-		pDoc->m_text.fontSize = dlg.m_nSize;
-		pDoc->m_text.pointText = point;
-		pDoc->m_text.textAlpha = dlg.m_nOpacity;
-		pDoc->m_text.textColor = 0xFF00FF;
-
-		pDoc->m_text.Draw(g, this);
+		Graphics g(memBit.get());
+		CTextPtr m_pDraw = static_pointer_cast<CText>(pDoc->m_pDraw);
 
 
-		CText tmp;
+		m_pDraw->text = dlg.m_strText;
+		m_pDraw->fontSize = dlg.m_nSize;
+		m_pDraw->pointOld = Gdiplus::Point(point.x, point.y);
+		m_pDraw->textAlpha = dlg.m_nOpacity;
+		m_pDraw->color = Color(255, 255, 0, 255);
+
 
 		if (dlg.DoModal() == IDOK)
 		{
+			m_bflag = false;
+			m_pDraw->text = dlg.m_strText;
+			m_pDraw->fontSize = dlg.m_nSize;
+			m_pDraw->pointOld = Gdiplus::Point(point.x, point.y);
+			m_pDraw->textAlpha = dlg.m_nOpacity;
+			m_pDraw->color = dlg.SetColor();
 
-			tmp.text = dlg.m_strText;
-			tmp.fontSize = dlg.m_nSize;
-			tmp.pointText = point;
-			tmp.textAlpha = dlg.m_nOpacity;
-			tmp.textColor = dlg.m_btnColor.GetColor();
+			pDoc->m_draws.push_back(m_pDraw);
 
-			pDoc->m_texts.push_back(tmp);
 		}
+		else
+		{
+			m_bflag = false;
+			m_pDraw->text = _T(""); // 다이얼로그 취소 눌러도 남아 있어서 빈문자로 만들어 없앰
+
+		}
+		
 	}
 	pDoc->UpdateAllViews(FALSE);
 
@@ -210,16 +214,15 @@ void CMfcAnnotationView::OnLButtonUp(UINT nFlags, CPoint point)
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	CMfcAnnotationDoc* pDoc = GetDocument();
 	ReleaseCapture();
-	pDoc->m_draw.pointCur.X = point.x;
-	pDoc->m_draw.pointCur.Y = point.y;
+
+	pDoc->m_pDraw->pointCur.Y = point.y;
+	pDoc->m_pDraw->pntLine.push_back(Gdiplus::Point(point.x, point.y));
+	pDoc->m_draws.push_back(pDoc->m_pDraw);
 	
-	pDoc->m_draws.push_back(pDoc->m_draw);
-	pDoc->m_draw.pntLine.clear();
+	m_bflag = false;
 
 	Invalidate(FALSE);
 
-	//pDoc->m_draw.pointCur.X = pDoc->m_draw.pointOld.X;
-	//pDoc->m_draw.pointCur.Y = pDoc->m_draw.pointOld.Y;
 
 	CView::OnLButtonUp(nFlags, point);
 }
@@ -229,13 +232,14 @@ void CMfcAnnotationView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	CMfcAnnotationDoc* pDoc = GetDocument();
+	
 	if ((nFlags & MK_LBUTTON) == MK_LBUTTON) {
 		if (m_nType) {
-			pDoc->m_draw.pointCur.X = point.x;
-			pDoc->m_draw.pointCur.Y = point.y;
+			pDoc->m_pDraw->pointCur.X = point.x;
+			pDoc->m_pDraw->pointCur.Y = point.y;
 
 		}
-		pDoc->m_draw.pntLine.push_back(Gdiplus::Point(point.x, point.y));
+		pDoc->m_pDraw->pntLine.push_back(Gdiplus::Point(point.x, point.y));
 	}
 	Invalidate(false);
 	CView::OnMouseMove(nFlags, point);
@@ -245,8 +249,7 @@ void CMfcAnnotationView::OnMouseMove(UINT nFlags, CPoint point)
 void CMfcAnnotationView::OnDrawString()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
-	m_nType == ID_DRAW_STRING;
-	//m_bAnno = !m_bAnno;
+	m_nType = ID_DRAW_STRING;
 }
 
 
@@ -256,4 +259,13 @@ BOOL CMfcAnnotationView::OnEraseBkgnd(CDC* pDC)
 
 	//return CView::OnEraseBkgnd(pDC);
 	return TRUE;
+}
+
+
+void CMfcAnnotationView::OnInitialUpdate()
+{
+	CView::OnInitialUpdate();
+
+	m_bflag = false;
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
 }

@@ -29,7 +29,7 @@ public:
 	CMFCColorButton m_btnColor;
 	COLORREF m_color;
 	int m_nOpacity;
-
+	Color SetColor();
 	virtual BOOL OnInitDialog();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnEnChangeEditText();

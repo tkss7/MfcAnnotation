@@ -14,6 +14,7 @@
 #pragma comment (lib,"Gdiplus.lib")
 
 #include "opencv2/opencv.hpp" 
+#include <memory>
 #include <vector>
 
 using namespace cv;

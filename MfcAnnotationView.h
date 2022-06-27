@@ -23,6 +23,9 @@ public:
 	//String
 	bool m_bAnno;	// String dlg
 
+	//
+	bool m_bflag;
+
 // 작업입니다.
 public:
 
@@ -56,6 +59,7 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnDrawString();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	virtual void OnInitialUpdate();
 };
 
 #ifndef _DEBUG  // MfcAnnotationView.cpp의 디버그 버전

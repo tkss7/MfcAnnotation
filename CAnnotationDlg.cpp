@@ -8,6 +8,7 @@
 #include "MfcAnnotationView.h"
 #include "framework.h"
 #include "MfcAnnotationDoc.h"
+#include "CDraw.h"
 // CAnnotationDlg 대화 상자
 
 IMPLEMENT_DYNAMIC(CAnnotationDlg, CDialog)
@@ -80,8 +81,10 @@ void CAnnotationDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	m_nOpacity = m_SliderOp.GetPos();
 	UpdateData(FALSE);
 
-	pDoc->m_text.textAlpha = m_nOpacity;
-
+	//pDoc->m_pDraw-> = m_nOpacity;
+	//dynamic_pointer_cast<CText>(pDoc->m_pDraw).get()->textAlpha = m_nOpacity;
+	static_pointer_cast<CText>(pDoc->m_pDraw).get()->textAlpha = m_nOpacity;
+	pDoc->m_pDraw->color = SetColor();
 	pDoc->UpdateAllViews(FALSE);
 
 	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
@@ -97,8 +100,9 @@ void CAnnotationDlg::OnEnChangeEditText()
 	UpdateData(TRUE);
 	m_strText;
 	UpdateData(FALSE);
-
-	pDoc->m_text.text = m_strText;
+	 
+	static_pointer_cast<CText>(pDoc->m_pDraw).get()->text = m_strText;
+	//(CText*)(pDoc->m_pDraw).get()->
 
 	pDoc->UpdateAllViews(FALSE);
 }
@@ -113,7 +117,8 @@ void CAnnotationDlg::OnEnChangeEditSize()
 	UpdateData(FALSE);
 
 	
-	pDoc->m_text.fontSize = m_nSize;
+	//pDoc->m_pDraw->fontSize = m_nSize;
+	static_pointer_cast<CText>(pDoc->m_pDraw).get()->fontSize = m_nSize;
 
 	pDoc->UpdateAllViews(FALSE);
 }
@@ -126,9 +131,13 @@ void CAnnotationDlg::OnBnClickedColorbutton()
 	m_color=m_btnColor.GetColor();
 	UpdateData(FALSE);
 
-	pDoc->m_text.textColor = m_color;
+	static_pointer_cast<CText>(pDoc->m_pDraw).get()->color = SetColor();
 
 	pDoc->UpdateAllViews(FALSE);
 }
 
+Color CAnnotationDlg::SetColor()
+{
+	return Color(m_nOpacity, (BYTE)GetRValue(m_color), GetGValue(m_color), GetBValue(m_color));
+}
 
