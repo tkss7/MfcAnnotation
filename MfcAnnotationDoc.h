@@ -27,6 +27,10 @@ public:
 	CDraw m_draw;
 	vector<CDraw> m_draws;
 
+	// String
+	CText m_text;
+	vector<CText> m_texts;
+
 // 재정의입니다.
 public:
 	virtual BOOL OnNewDocument();

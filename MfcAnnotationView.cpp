@@ -10,8 +10,9 @@
 #include "MfcAnnotation.h"
 #endif
 
-#include "MfcAnnotationDoc.h"
+//#include "MfcAnnotationDoc.h"
 #include "MfcAnnotationView.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -27,11 +28,13 @@ BEGIN_MESSAGE_MAP(CMfcAnnotationView, CView)
 	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
-	ON_COMMAND_RANGE(ID_DRAW_RECTANGLE, ID_DRAW_LINE_FREE, OnChangeTool)
-	ON_UPDATE_COMMAND_UI_RANGE(ID_DRAW_RECTANGLE, ID_DRAW_LINE_FREE, OnUpdateChangeTool)
+	ON_COMMAND_RANGE(ID_DRAW_RECTANGLE, ID_DRAW_STRING, OnChangeTool)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_DRAW_RECTANGLE, ID_DRAW_STRING, OnUpdateChangeTool)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_COMMAND(ID_DRAW_STRING, &CMfcAnnotationView::OnDrawString)
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 // CMfcAnnotationView 생성/소멸
@@ -63,6 +66,11 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 	if (!pDoc)
 		return;
 
+	CRect rectDraw;		// 사각형 도화지 준비
+	GetClientRect(rectDraw);	// 도화지 선언
+	memBit = make_shared<Bitmap>(rectDraw.Width(), rectDraw.Height());
+	Graphics memDC(memBit.get());	// 메모리bitmap
+
 	//Img load
 	Graphics g(pDC->m_hDC);
 	if (!(pDoc->matImg.empty())) {
@@ -71,14 +79,30 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 		Bitmap bitmap((INT)pDoc->matImg.size().width, (INT)pDoc->matImg.size().height, (INT)pDoc->matImg.step,
 			PixelFormat32bppARGB, pDoc->matImg.data);
 
-		g.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+		Gdiplus::SolidBrush blackBrush(Gdiplus::Color(255, 0, 0, 0));	
+		memDC.FillRectangle(&blackBrush, 0, 0, memBit.get()->GetWidth(), memBit.get()->GetHeight());	// 도화지 == 검은색
+
+		memDC.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+
+		// 실시간 그리기
+		if (m_nType) {
+			pDoc->m_draw.Draw(memDC);
+			pDoc->m_text.Draw(memDC, this);
+		}
 	}
+
 
 	// Annotation
 	for (auto i = 0; i < pDoc->m_draws.size(); i++) {
-		pDoc->m_draws[i].Draw(g);
+		pDoc->m_draws[i].Draw(memDC);
 	}
 
+	// String
+	for (auto i = 0; i < pDoc->m_texts.size(); i++) {
+		pDoc->m_texts[i].Draw(memDC, this);
+	}
+
+	g.DrawImage(memBit.get(), 0, 0);
 }
 
 
@@ -145,6 +169,38 @@ void CMfcAnnotationView::OnLButtonDown(UINT nFlags, CPoint point)
 	pDoc->m_draw.pointOld.X = point.x;
 	pDoc->m_draw.pointOld.Y = point.y;
 
+	// String
+	if (m_nType == ID_DRAW_STRING)
+	{
+		CAnnotationDlg dlg;
+		CClientDC dc(this);
+		Graphics g(dc.m_hDC);
+
+		pDoc->m_text.text = dlg.m_strText;
+		pDoc->m_text.fontSize = dlg.m_nSize;
+		pDoc->m_text.pointText = point;
+		pDoc->m_text.textAlpha = dlg.m_nOpacity;
+		pDoc->m_text.textColor = 0xFF00FF;
+
+		pDoc->m_text.Draw(g, this);
+
+
+		CText tmp;
+
+		if (dlg.DoModal() == IDOK)
+		{
+
+			tmp.text = dlg.m_strText;
+			tmp.fontSize = dlg.m_nSize;
+			tmp.pointText = point;
+			tmp.textAlpha = dlg.m_nOpacity;
+			tmp.textColor = dlg.m_btnColor.GetColor();
+
+			pDoc->m_texts.push_back(tmp);
+		}
+	}
+	pDoc->UpdateAllViews(FALSE);
+
 	CView::OnLButtonDown(nFlags, point);
 }
 
@@ -159,7 +215,12 @@ void CMfcAnnotationView::OnLButtonUp(UINT nFlags, CPoint point)
 	
 	pDoc->m_draws.push_back(pDoc->m_draw);
 	pDoc->m_draw.pntLine.clear();
+
 	Invalidate(FALSE);
+
+	//pDoc->m_draw.pointCur.X = pDoc->m_draw.pointOld.X;
+	//pDoc->m_draw.pointCur.Y = pDoc->m_draw.pointOld.Y;
+
 	CView::OnLButtonUp(nFlags, point);
 }
 
@@ -168,10 +229,31 @@ void CMfcAnnotationView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	CMfcAnnotationDoc* pDoc = GetDocument();
-	CClientDC dc(this);
-	if (nFlags & MK_LBUTTON) {
+	if ((nFlags & MK_LBUTTON) == MK_LBUTTON) {
+		if (m_nType) {
+			pDoc->m_draw.pointCur.X = point.x;
+			pDoc->m_draw.pointCur.Y = point.y;
+
+		}
 		pDoc->m_draw.pntLine.push_back(Gdiplus::Point(point.x, point.y));
 	}
-
+	Invalidate(false);
 	CView::OnMouseMove(nFlags, point);
+}
+
+
+void CMfcAnnotationView::OnDrawString()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_nType == ID_DRAW_STRING;
+	//m_bAnno = !m_bAnno;
+}
+
+
+BOOL CMfcAnnotationView::OnEraseBkgnd(CDC* pDC)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	//return CView::OnEraseBkgnd(pDC);
+	return TRUE;
 }

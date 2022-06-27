@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include "MfcAnnotationDoc.h"
+#include "CAnnotationDlg.h"
 
 class CMfcAnnotationView : public CView
 {
@@ -15,6 +16,13 @@ protected: // serialization에서만 만들어집니다.
 public:
 	CMfcAnnotationDoc* GetDocument() const;
 	int m_nType;
+
+	// 버퍼링
+	shared_ptr<Bitmap> memBit;
+
+	//String
+	bool m_bAnno;	// String dlg
+
 // 작업입니다.
 public:
 
@@ -46,6 +54,8 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnDrawString();
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 };
 
 #ifndef _DEBUG  // MfcAnnotationView.cpp의 디버그 버전

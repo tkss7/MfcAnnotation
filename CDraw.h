@@ -18,3 +18,16 @@ public:
 	void Draw(Gdiplus::Graphics& g);
 };
 
+class CText
+{
+public:
+	CString text;
+	int fontSize;
+	CPoint pointText;
+	COLORREF textColor;
+	int textAlpha;
+public:
+	CText();
+	void Draw(Graphics& g, CWnd* cwnd);
+	Color SetColor();
+};
