@@ -24,6 +24,9 @@ IMPLEMENT_DYNCREATE(CMfcAnnotationDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CMfcAnnotationDoc, CDocument)
 	ON_COMMAND(ID_IMG_LOAD, &CMfcAnnotationDoc::OnImgLoad)
+	ON_COMMAND(ID_DRAW_RECTANGLE, &CMfcAnnotationDoc::OnDrawRectangle)
+	ON_COMMAND(ID_DRAW_CIRCLE, &CMfcAnnotationDoc::OnDrawCircle)
+	ON_COMMAND(ID_DRAW_LINE, &CMfcAnnotationDoc::OnDrawLine)
 END_MESSAGE_MAP()
 
 
@@ -33,7 +36,7 @@ CMfcAnnotationDoc::CMfcAnnotationDoc() noexcept
 {
 	// TODO: 여기에 일회성 생성 코드를 추가합니다.
 	m_Text.resize(0);
-
+	m_nDrawMode = 0;
 }
 
 CMfcAnnotationDoc::~CMfcAnnotationDoc()
@@ -152,4 +155,27 @@ void CMfcAnnotationDoc::OnImgLoad()
 	}
 
 	UpdateAllViews(NULL);
+}
+
+
+void CMfcAnnotationDoc::OnDrawRectangle()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_nDrawMode = ID_DRAW_RECTANGLE;
+}
+
+
+void CMfcAnnotationDoc::OnDrawCircle()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_nDrawMode = ID_DRAW_CIRCLE;
+
+}
+
+
+void CMfcAnnotationDoc::OnDrawLine()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_nDrawMode = ID_DRAW_LINE;
+
 }

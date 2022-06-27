@@ -196,6 +196,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CAnnotationDlg.h" />
+    <ClInclude Include="CDraw.h" />
     <ClInclude Include="CText.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
@@ -208,6 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CAnnotationDlg.cpp" />
+    <ClCompile Include="CDraw.cpp" />
     <ClCompile Include="CText.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="MfcAnnotation.cpp" />

@@ -5,7 +5,7 @@
 
 #pragma once
 #include "CText.h"
-
+#include "CDraw.h"
 class CMfcAnnotationDoc : public CDocument
 {
 protected: // serialization에서만 만들어집니다.
@@ -20,6 +20,12 @@ public:
 	CString m_ImgPath;
 	vector<CText> m_Text;
 	//CText m_text;
+	
+	vector<GRectangle> Rectangles;
+	vector<Circle> Circles;
+	vector<DLine> Dlines;
+	vector<CLine> Clines;
+	int m_nDrawMode;
 	Mat matImg;
 // 재정의입니다.
 public:
@@ -50,4 +56,7 @@ protected:
 #endif // SHARED_HANDLERS
 public:
 	afx_msg void OnImgLoad();
+	afx_msg void OnDrawRectangle();
+	afx_msg void OnDrawCircle();
+	afx_msg void OnDrawLine();
 };

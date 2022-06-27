@@ -30,6 +30,10 @@ BEGIN_MESSAGE_MAP(CMfcAnnotationView, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 	ON_COMMAND(ID_ANNO_TEXT, &CMfcAnnotationView::OnAnnoText)
 	ON_WM_LBUTTONDBLCLK()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_MOUSEMOVE()
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 // CMfcAnnotationView 생성/소멸
@@ -61,27 +65,50 @@ void CMfcAnnotationView::OnDraw(CDC* pDC)
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
 		return;
-
+	CRect rectDraw;
+	GetClientRect(rectDraw);
+	Bitmap bitmap2(rectDraw.Width(), rectDraw.Height());
 	Graphics g(pDC->m_hDC);
 	if (!(pDoc->matImg.empty())) {
 		cvtColor(pDoc->matImg, pDoc->matImg, COLOR_BGR2BGRA);
 
 		Bitmap bitmap((INT)pDoc->matImg.size().width, (INT)pDoc->matImg.size().height, (INT)pDoc->matImg.step,
 			PixelFormat32bppARGB, pDoc->matImg.data);
-
-		g.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+		Graphics memDC(&bitmap2);
+		SolidBrush whiteBrush(Gdiplus::Color(255, 0, 0, 0));
+		memDC.FillRectangle(&whiteBrush, 0, 0, rectDraw.Width(), rectDraw.Height());
+		//g.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+		memDC.DrawImage(&bitmap, 0, 0, bitmap.GetWidth(), bitmap.GetHeight());
 
 		if (m_bDblCl)
 		{
-			m_text.Draw(g, this);
+			//m_text.Draw(g, this);
+			m_text.Draw(memDC, this);
 
 		}
-
-
+		if (pDoc->m_nDrawMode != 0)
+		{
+			if (pDoc->m_nDrawMode == ID_DRAW_RECTANGLE)
+				m_nemo.Draw(memDC, this);
+			if (pDoc->m_nDrawMode == ID_DRAW_CIRCLE)
+				m_circle.Draw(memDC, this); 
+			//m_nemo.Draw(g, this);
+		}
+		for (auto nemo : pDoc->Rectangles)
+		{
+			nemo.Draw(memDC, this);
+		}
+		for (auto circle : pDoc->Circles)
+		{
+			circle.Draw(memDC, this);
+		}
 		for (auto AnnoText : pDoc->m_Text)
 		{
-			AnnoText.Draw(g, this);
+			//AnnoText.Draw(g, this);
+			AnnoText.Draw(memDC, this);
 		}
+
+		g.DrawImage(&bitmap2, 0, 0);
 	}
 
 }
@@ -141,14 +168,14 @@ void CMfcAnnotationView::OnAnnoText()
 void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-
+	CMfcAnnotationDoc* pDoc = GetDocument();
 	if (m_bAnno)
 	{
 		m_bDblCl = true;
 		CAnnotationDlg dlg;
 		CClientDC dc(this);
 		Graphics g(dc.m_hDC);
-		CMfcAnnotationDoc* pDoc = GetDocument();
+		
 		m_text.m_AnnoText = dlg.m_strText;
 		m_text.m_AnnoSize= dlg.m_nSize;
 		m_text.m_AnnoPoint= point;
@@ -177,6 +204,94 @@ void CMfcAnnotationView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 		pDoc->UpdateAllViews(FALSE);
 	}
+	
+
 
 	CView::OnLButtonDblClk(nFlags, point);
+}
+
+
+void CMfcAnnotationView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	CMfcAnnotationDoc* pDoc = GetDocument();
+
+	if (pDoc->m_nDrawMode!=0)
+	{
+		if (pDoc->m_nDrawMode == ID_DRAW_RECTANGLE)
+		{
+			m_nemo.x = point.x;
+			m_nemo.y = point.y;
+		}
+		else if (pDoc->m_nDrawMode == ID_DRAW_CIRCLE)
+		{
+			m_circle.x = point.x;
+			m_circle.y = point.y;
+		}
+	}
+	SetCapture();
+
+	CView::OnLButtonDown(nFlags, point);
+}
+
+
+void CMfcAnnotationView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CMfcAnnotationDoc* pDoc = GetDocument();
+	CClientDC dc(this);
+	Graphics g(dc.m_hDC);
+	if (pDoc->m_nDrawMode != 0)
+	{
+		if (pDoc->m_nDrawMode == ID_DRAW_RECTANGLE)
+		{
+			m_nemo.width = point.x - m_nemo.x;
+			m_nemo.height = point.y - m_nemo.y;
+			pDoc->Rectangles.push_back(m_nemo);
+		}
+		else if (pDoc->m_nDrawMode == ID_DRAW_CIRCLE)
+		{
+			m_circle.width = point.x - m_circle.x;
+			m_circle.height = point.y - m_circle.y;
+			pDoc->Circles.push_back(m_circle);
+		}
+	}
+	ReleaseCapture();
+
+	CView::OnLButtonUp(nFlags, point);
+}
+
+
+void CMfcAnnotationView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	CMfcAnnotationDoc* pDoc = GetDocument();
+	CClientDC dc(this);
+	Graphics g(dc.m_hDC);
+	if ((nFlags & MK_LBUTTON) == MK_LBUTTON && pDoc->m_nDrawMode != 0)
+	{
+		if (pDoc->m_nDrawMode == ID_DRAW_RECTANGLE)
+		{
+			m_nemo.width = point.x - m_nemo.x;
+			m_nemo.height = point.y - m_nemo.y;
+		}
+		else if (pDoc->m_nDrawMode == ID_DRAW_CIRCLE)
+		{
+			m_circle.width = point.x - m_circle.x;
+			m_circle.height = point.y - m_circle.y;
+		}
+		Invalidate(FALSE);
+	}
+
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+BOOL CMfcAnnotationView::OnEraseBkgnd(CDC* pDC)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	return TRUE;
+	//return CView::OnEraseBkgnd(pDC);
 }

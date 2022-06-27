@@ -19,13 +19,15 @@
 #define ID_DRAW_RECTANGLE               32772
 #define ID_ANNO_TEXT                    32773
 #define ID_IMG_32774                    32774
+#define ID_DRAW_CIRCLE                  32775
+#define ID_DRAW_LINE                    32776
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        312
-#define _APS_NEXT_COMMAND_VALUE         32775
+#define _APS_NEXT_COMMAND_VALUE         32777
 #define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           311
 #endif
